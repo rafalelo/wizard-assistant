@@ -55,19 +55,22 @@ app.get('/devices', (req, res) => {
 app.get('/:device', (req, res)=>{
     let device = req.params.device
     let processor
+    let baud
     client.listSafe(`/${device}`, (err, listing) =>{
-        let procfile = _.find(listing, (el) => { return el.name.includes('.processor')}) // Look for .processor file
+        let procfile = _.find(listing, (el) => { return el.name.includes('.processor')})// Look for .processor file
+        let baudfile = _.find(listing, (el) => { return el.name.includes('.baudrate')}) // Look for .baudrate file
 
     
-        if (procfile){
+        if (procfile && baudfile){
             processor = procfile.name.split('.')[0]
+            baud = baudfile.name.split('.')[0]
             let lst = _.filter(listing, (el) => { //Look for all directories meaning sensors
                 return el.type == 'd' && !excluded_dirs.includes(el.name);
             })
             lst = _.map(lst, (el) => { // Select only names of them
                 return el.name;
             })
-            res.send({"processor": processor, "sensors": lst})
+            res.send({"baudrate": baud, "processor": processor, "sensors": lst})
         } else { // No .processor file means something went wrong and flash can't be performed
             res.send('')
         }
@@ -76,7 +79,7 @@ app.get('/:device', (req, res)=>{
     
 })
 app.get('/:device/:sensor', (req, res)=>{
-    res.send()
+    
 })
 
 app.listen(3000, console.log('Server running...'))
