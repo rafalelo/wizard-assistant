@@ -1,13 +1,14 @@
 const express = require('express');
+const {resolve} = require('path');
 const FTPClient = require('ftp');
 const app = express()
 const _ = require('underscore');
 
 if (process.env.NODE_ENV) {
-    require('dotenv').config({path: '/home/admin/wizard-assistant/.env'})
+    require('dotenv').config({path: resolve('/home/admin/wizard-assistant/.env')})
     console.log('Production .env file loaded.')
 } else {
-    require('dotenv').config({path: '/home/admin/wizard-assistant/.env'})
+    require('dotenv').config({path: resolve('/home/admin/wizard-assistant/.env')})
     console.log('Development .env file loaded.')
 }
 
