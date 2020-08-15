@@ -25,6 +25,10 @@ client.on('end', () => {
     connectFTP();
 })
 
+client.on('error', (error) => {
+    console.error(error);
+})
+
 
 function connectFTP(){
     try {
@@ -65,14 +69,12 @@ app.get('/devices', (req, res) => {
         return;
     }
     client.listSafe('/', false, (err, listing) => {
-        console.log(listing)
         listing = _.filter(listing, (element)=>{
-            return element.type == 'd' && !excluded_dirs.includes(element.name); // 2 because type 2 means it's a directory
+            return element.type == 'd' && !excluded_dirs.includes(element.name); // d because type d means it's a directory. And we don't want parent and current directory symlinks
         })
         listing = _.map(listing, (element) => {
             return element.name;
         })
-        console.log(listing)
         res.send({"devices": listing})
     })
 })
