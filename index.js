@@ -4,7 +4,8 @@ const app = express()
 const _ = require('underscore');
 
 if (process.env.NODE_ENV) {
-    require('dotenv').config({path: '/home/admin/wizard-assistant'})
+    require('dotenv').config({path: '/home/admin/wizard-assistant/.env'})
+    console.log('Production .env file loaded.')
 } else {
     require('dotenv').config()
 }
