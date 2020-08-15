@@ -7,7 +7,7 @@ if (process.env.NODE_ENV) {
     require('dotenv').config({path: '/home/admin/wizard-assistant/.env'})
     console.log('Production .env file loaded.')
 } else {
-    require('dotenv').config()
+    require('dotenv').config({path: '/home/admin/wizard-assistant/.env'})
     console.log('Development .env file loaded.')
 }
 
