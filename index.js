@@ -8,6 +8,7 @@ if (process.env.NODE_ENV) {
     console.log('Production .env file loaded.')
 } else {
     require('dotenv').config()
+    console.log('Development .env file loaded.')
 }
 
 const client = new FTPClient();
