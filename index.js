@@ -39,7 +39,7 @@ app.get('/devices', (req, res) => {
         res.status(404).send('No ftp connection')
         return;
     }
-    client.list('/', (err, listing) => {
+    client.listSafe('/', false, (err, listing) => {
         console.log(listing)
         listing = _.filter(listing, (element)=>{
             return element.type == 'd' && !excluded_dirs.includes(element.name); // 2 because type 2 means it's a directory
@@ -56,7 +56,7 @@ app.get('/:device', (req, res)=>{
     let device = req.params.device
     let processor
     let baud
-    client.listSafe(`/${device}`, (err, listing) =>{
+    client.listSafe(`/${device}`,false, (err, listing) =>{
         let procfile = _.find(listing, (el) => { return el.name.includes('.processor')})// Look for .processor file
         let baudfile = _.find(listing, (el) => { return el.name.includes('.baudrate')}) // Look for .baudrate file
 
@@ -76,8 +76,10 @@ app.get('/:device', (req, res)=>{
         }
         
     })
+
     
 })
+
 app.get('/:device/:sensor', (req, res)=>{
     
 })
