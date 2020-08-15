@@ -3,7 +3,11 @@ const FTPClient = require('ftp');
 const app = express()
 const _ = require('underscore');
 
-require('dotenv').config()
+if (process.env.NODE_ENV) {
+    require('dotenv').config({path: '/home/admin/wizard-assistant'})
+} else {
+    require('dotenv').config()
+}
 
 const client = new FTPClient();
 const excluded_dirs = ['.', '..']
