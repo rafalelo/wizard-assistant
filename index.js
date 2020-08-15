@@ -8,7 +8,7 @@ if (process.env.NODE_ENV) {
     require('dotenv').config({path: resolve('/home/admin/wizard-assistant/.env')})
     console.log('Production .env file loaded.')
 } else {
-    require('dotenv').config({path: '/home/admin/wizard-assistant/.env'})
+    require('dotenv').config()
     console.log('Development .env file loaded.')
 }
 
@@ -16,7 +16,17 @@ const client = new FTPClient();
 const excluded_dirs = ['.', '..']
 let connected;
 
-async function connectFTP(){
+client.on('ready', () => {
+    connected = true;
+})
+
+client.on('end', () => {
+    connected = false;
+    connectFTP();
+})
+
+
+function connectFTP(){
     try {
         client.connect({
             host: process.env.FTP_HOST,
@@ -24,7 +34,6 @@ async function connectFTP(){
             password: process.env.FTP_PASSWORD,
             secure: false
         })
-
         
         return true
     } catch(err) {
@@ -34,9 +43,17 @@ async function connectFTP(){
         return false
     }
 }
-(async () => {
-    connected = await connectFTP();
-})();
+
+function reconnectFTP(){
+    
+    client.end();
+    return
+}
+
+connectFTP();
+
+setInterval(reconnectFTP, 180000) // Reconnect interval, every 180000ms=3min
+
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
@@ -44,6 +61,7 @@ app.get('/devices', (req, res) => {
     if (!connected){
         console.error('No ftp connection')
         res.status(404).send('No ftp connection')
+        reconnectFTP();
         return;
     }
     client.listSafe('/', false, (err, listing) => {
@@ -91,6 +109,6 @@ app.get('/*', function(req, res) {
      
         res.status(404).send("Not found")
 
-    })
+})
 
 app.listen(3000, console.log('Server running...'))
