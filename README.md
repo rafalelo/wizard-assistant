@@ -1,4 +1,4 @@
-﻿# Wizard Assistant
+﻿# :sparkles: Wizard Assistant
 *To make wizard work easier.*
 
 This app is intended to work as API server between [Flash Wizard](https://github.com/gerwant/flash-wizard) and file storage server.<br/><br/>
