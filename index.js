@@ -61,6 +61,28 @@ setInterval(reconnectFTP, 180000) // Reconnect interval, every 180000ms=3min
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
+app.get('/dev/:device/:sensor', (req, res)=>{
+    let device = req.params.device
+    let sensor = req.params.sensor
+    let processor
+    let baud
+
+ 
+
+    client.listSafe(`/${device}/${sensor}`, false, (err, listing) => {
+        console.log(listing)
+        listing = _.filter(listing, (element)=>{
+            return element.type == '-'; // 2 because type 2 means it's a directory
+        })
+        listing = _.map(listing, (element) => {
+            return element.name;
+        })
+        console.log(listing)
+        res.send({"devices": listing})
+    })
+    
+    
+})
 app.get('/devices', (req, res) => {
     if (!connected){
         console.error('No ftp connection')
