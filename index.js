@@ -62,6 +62,12 @@ app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
 app.get('/dev/:device/:sensor', (req, res)=>{
+    let count = 0
+    while(!connected && count < 5)
+    {
+        setTimeout(1000)
+        count ++
+    }
     let device = req.params.device
     let sensor = req.params.sensor
     let processor
@@ -84,6 +90,12 @@ app.get('/dev/:device/:sensor', (req, res)=>{
     
 })
 app.get('/devices', (req, res) => {
+    let count = 0
+    while(!connected && count < 5)
+    {
+        setTimeout(1000)
+        count ++
+    }
     if (!connected){
         console.error('No ftp connection')
         res.status(404).send('No ftp connection')
@@ -102,6 +114,13 @@ app.get('/devices', (req, res) => {
 })
 
 app.get('/:device', (req, res)=>{
+    let count = 0
+    while(!connected && count < 5)
+    {
+        setTimeout(1000)
+        count ++
+    }
+    
     let device = req.params.device
     let processor
     let baud
