@@ -46,6 +46,8 @@ function update_hexfiles() {
 
         if (device_sensor.length >0 ) {
             update_hexfiles();
+        } else {
+            client.end();
         }
 
     })
