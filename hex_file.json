@@ -1,0 +1,9 @@
+{
+    "printers": [
+        {
+            "name": "Anet A8",
+            "baudrate": "57600",
+            "processor": "atmega1284"
+        }    
+    ]
+}

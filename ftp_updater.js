@@ -8,6 +8,7 @@ const _ = require('underscore')
 const client = new FTPClient();
 const excluded_dirs = ['.', '..', '.ftpquota']
 const dpath = path.join(__dirname, "devices")
+const faq = path.join(__dirname, "faq.json")
 
 let devices = []
 
@@ -17,7 +18,7 @@ function update_hexfiles() {
 
     let conf = device_sensor.pop()
 
-    client.listSafe(`/${conf.device}/${conf.sensor}`, false, (err, listing) => {
+    client.listSafe(`/no_hex_file/${conf.device}/${conf.sensor}`, false, (err, listing) => {
         let firmwares = _.chain(listing)
                         .filter( (el) => { return el.type == '-'})
                         .map((el) => { return el.name })
@@ -55,11 +56,13 @@ function update_hexfiles() {
     return true;
 }
 
+
+
 function update_sensors(){
 
     device = devices.pop()
 
-    client.listSafe(`/${device}`, false, (err, listing) => {
+    client.listSafe(`/no_hex_file/${device}`, false, (err, listing) => {
 
         let sensors = _.chain(listing)
             .filter((el) => { return el.type == 'd' && !excluded_dirs.includes(el.name) })
@@ -145,8 +148,28 @@ function update_devices(new_devices){
     update_sensors();
 }
 
+function update_faq(){
+    client.get('/faq/faq.json', (err, stream) => {
+        if(err)
+            throw err;
+        stream.pipe(fs.createWriteStream('faq.json'))
+        update_hex_file();
+    });
+}
+
+function update_hex_file(){
+    client.get('/hex_file/printers.json', (err, stream) => {
+        if(err)
+            throw err;
+        stream.pipe(fs.createWriteStream('hex_file.json'))
+    });
+}
+
 client.on('ready', () => {
-    client.listSafe('/', false, (err, listing) => {
+
+    update_faq();
+
+    client.listSafe('/no_hex_file', false, (err, listing) => {
         devices = _.filter(listing, (element) => {
             return element.type == 'd' && !excluded_dirs.includes(element.name); // d because type d means it's a directory. And we don't want parent and current directory symlinks
         })
@@ -162,7 +185,6 @@ client.on('error', (error) => {
 })
 
 router.get('/', async (req, res) => {
-
     //new ftpdump({
     //    host: process.env.FTP_HOST,
     //    port: 21,

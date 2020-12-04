@@ -6,6 +6,10 @@ const path = require('path')
 const fs = require('fs')
 const _ = require('underscore');
 
+const dpath = path.join(__dirname, "devices")
+const faqpath = path.join(__dirname, "faq.json")
+const hex_file_path = path.join(__dirname, "hex_file.json")
+
 if (process.env.NODE_ENV) {
     require('dotenv').config({path: resolve('/home/admin/wizard-assistant/.env')})
     console.log('Production .env file loaded.')
@@ -14,7 +18,6 @@ if (process.env.NODE_ENV) {
     console.log('Development .env file loaded.')
 }
 
-const dpath = path.join(__dirname, "devices")
 
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
@@ -56,6 +59,20 @@ app.get('/devices', (req, res) => {
 
     res.send({"devices": devices})
     
+})
+
+app.get('/faq', (req, res) => {
+
+    let faq = fs.readFileSync(faqpath);
+    res.send(JSON.parse(faq));
+
+})
+
+app.get('/hex_file', (req, res) => {
+
+    let hex = fs.readFileSync(hex_file_path);
+    res.send(JSON.parse(hex));
+
 })
 
 app.get('/:device', (req, res)=>{
