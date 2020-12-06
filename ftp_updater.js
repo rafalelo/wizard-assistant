@@ -149,25 +149,59 @@ function update_devices(new_devices){
 }
 
 function update_faq(){
-    client.get('/faq/faq.json', (err, stream) => {
-        if(err)
-            throw err;
-        stream.pipe(fs.createWriteStream('faq.json'))
-        update_hex_file();
-    });
+    // client.get('/faq/faq.json', (err, stream) => {
+    //     if(err)
+    //         throw err;
+    //     stream.pipe(fs.createWriteStream('faq.json'))
+    //     update_hex_file();
+    // });
+    return new Promise(function(resolve, reject){
+        client.get('/faq/faq.json', (err, stream) => {
+            if(err)
+                reject(err);
+            stream.pipe(fs.createWriteStream('faq.json'))
+            resolve()
+        });
+    })
 }
 
-function update_hex_file(){
-    client.get('/hex_file/printers.json', (err, stream) => {
-        if(err)
-            throw err;
-        stream.pipe(fs.createWriteStream('hex_file.json'))
-    });
+var update_hex_file = function(){
+    // client.get('/hex_file/printers.json', (err, stream) => {
+    //     if(err)
+    //         throw err;
+    //     stream.pipe(fs.createWriteStream('hex_file.json'))
+    // });
+    return new Promise(function(resolve, reject){
+        client.get('/hex_file/printers.json', (err, stream) => {
+            if(err)
+                reject(err);
+            stream.pipe(fs.createWriteStream('hex_file.json'))
+            resolve()
+        });
+    })
 }
+
+var update_hallon_faq = function(){
+    // client.get('/faq_configurator/faq.json', (err, stream) => {
+    //     if(err)
+    //         throw err;
+    //     stream.pipe(fs.createWriteStream('hallon_faq.json'))
+    // });
+    return new Promise(function(resolve, reject){
+        client.get('/faq_configurator/faq.json', (err, stream) => {
+            try {
+                stream.pipe(fs.createWriteStream('hallon_faq.json'))
+            } catch (error) {
+                console.log(error)
+            };
+            resolve()
+        });
+    })
+}
+
 
 client.on('ready', () => {
-
-    update_faq();
+    update_faq().then(update_hex_file).then(update_hallon_faq);
 
     client.listSafe('/no_hex_file', false, (err, listing) => {
         devices = _.filter(listing, (element) => {
@@ -178,6 +212,7 @@ client.on('ready', () => {
         })
         update_devices(devices);
     })
+  
 })
 
 client.on('error', (error) => {

@@ -9,6 +9,7 @@ const _ = require('underscore');
 const dpath = path.join(__dirname, "devices")
 const faqpath = path.join(__dirname, "faq.json")
 const hex_file_path = path.join(__dirname, "hex_file.json")
+const hallonfaqpath = path.join(__dirname, "hallon_faq.json")
 
 if (process.env.NODE_ENV) {
     require('dotenv').config({path: resolve('/home/admin/wizard-assistant/.env')})
@@ -72,6 +73,13 @@ app.get('/hex_file', (req, res) => {
 
     let hex = fs.readFileSync(hex_file_path);
     res.send(JSON.parse(hex));
+
+})
+
+app.get('/hallon/faq', (req, res) => {
+
+    let faq = fs.readFileSync(hallonfaqpath);
+    res.send(JSON.parse(faq));
 
 })
 
