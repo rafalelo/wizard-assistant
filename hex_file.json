@@ -1,9 +1,44 @@
 {
     "printers": [
         {
-            "name": "Anet A8",
+            "name": "Anet A8/A6",
             "baudrate": "57600",
-            "processor": "atmega1284"
-        }    
+            "processor": "atmega1284p"
+        },
+        {
+            "name": "Ender 3/3 Pro/5",
+            "baudrate": "115200",
+            "processor": "atmega1284p"
+        },
+        {
+            "name": "GRBL - old bootloader",
+            "baudrate": "57600",
+            "processor": "atmega328p"
+        },
+        {
+            "name": "GRBL - new bootloader",
+            "baudrate": "115200",
+            "processor": "atmega328p"
+        },
+        {
+            "name": "RAMPS-based",
+            "baudrate": "115200",
+            "processor": "atmega2560"
+        },
+        {
+            "name": "MKS Gen-L",
+            "baudrate": "115200",
+            "processor": "atmega2560"
+        },
+        {
+            "name": "MKS 1.4",
+            "baudrate": "115200",
+            "processor": "atmega2560"
+        },
+        {
+            "name": "Other",
+            "baudrate": "57600",
+            "processor": "atmega2560"
+        }
     ]
 }

@@ -149,59 +149,38 @@ function update_devices(new_devices){
 }
 
 function update_faq(){
-    // client.get('/faq/faq.json', (err, stream) => {
-    //     if(err)
-    //         throw err;
-    //     stream.pipe(fs.createWriteStream('faq.json'))
-    //     update_hex_file();
-    // });
-    return new Promise(function(resolve, reject){
-        client.get('/faq/faq.json', (err, stream) => {
-            if(err)
-                reject(err);
-            stream.pipe(fs.createWriteStream('faq.json'))
-            resolve()
-        });
-    })
+     client.get('/faq/faq.json', (err, stream) => {
+        if(err)
+            throw err;
+        stream.once("close", () => {
+            update_hex_file();
+        })
+        stream.pipe(fs.createWriteStream('faq.json'))
+     });
+
 }
 
 var update_hex_file = function(){
-    // client.get('/hex_file/printers.json', (err, stream) => {
-    //     if(err)
-    //         throw err;
-    //     stream.pipe(fs.createWriteStream('hex_file.json'))
-    // });
-    return new Promise(function(resolve, reject){
-        client.get('/hex_file/printers.json', (err, stream) => {
-            if(err)
-                reject(err);
-            stream.pipe(fs.createWriteStream('hex_file.json'))
-            resolve()
-        });
-    })
+     client.get('/hex_file/printers.json', (err, stream) => {
+        if(err)
+            throw err;
+        stream.once("close", () => {
+            update_hallon_faq();
+        })
+        stream.pipe(fs.createWriteStream('hex_file.json'))
+     });
 }
 
 var update_hallon_faq = function(){
-    // client.get('/faq_configurator/faq.json', (err, stream) => {
-    //     if(err)
-    //         throw err;
-    //     stream.pipe(fs.createWriteStream('hallon_faq.json'))
-    // });
-    return new Promise(function(resolve, reject){
-        client.get('/faq_configurator/faq.json', (err, stream) => {
-            try {
-                stream.pipe(fs.createWriteStream('hallon_faq.json'))
-            } catch (error) {
-                console.log(error)
-            };
-            resolve()
-        });
-    })
+     client.get('/faq_configurator/faq.json', (err, stream) => {
+         if(err)
+             console.log(err);
+         stream.pipe(fs.createWriteStream('hallon_faq.json'))
+     });
 }
 
 
 client.on('ready', () => {
-    update_faq().then(update_hex_file).then(update_hallon_faq);
 
     client.listSafe('/no_hex_file', false, (err, listing) => {
         devices = _.filter(listing, (element) => {
@@ -211,6 +190,8 @@ client.on('ready', () => {
             return el.name
         })
         update_devices(devices);
+
+        update_faq()//.then(update_hex_file).then(update_hallon_faq);
     })
   
 })
