@@ -10,6 +10,8 @@ const excluded_dirs = ['.', '..', '.ftpquota']
 const dpath = path.join(__dirname, "devices")
 const faq = path.join(__dirname, "faq.json")
 
+const Logger = require('./logger');
+
 let devices = []
 
 let device_sensor = [] 
@@ -27,11 +29,15 @@ function update_hexfiles() {
         //console.log(`Firmwares for ${conf.device}/${conf.sensor}: ${firmwares}`)
         
         let current_items = fs.readdirSync(path.join(dpath, conf.device, conf.sensor), err => { console.error(err)})
-        for (item of current_items) {
-            if (fs.existsSync(path.join(dpath, conf.device, conf.sensor, item))){//&&fs.statSync(path.join(dpath, device, item)).isDirectory())){
-                fs.rmdirSync(path.join(dpath, conf.device, conf.sensor, item), {recursive: true})
-            }
-        }   
+        try {
+            for (item of current_items) {
+                if (fs.existsSync(path.join(dpath, conf.device, conf.sensor, item))){//&&fs.statSync(path.join(dpath, device, item)).isDirectory())){
+                    fs.rmdirSync(path.join(dpath, conf.device, conf.sensor, item), {recursive: true})
+                }
+            }   
+        } catch (error) {
+            Logger.warn("Removing directory in /no_hex_file failed.");
+        }
 
         _.each(firmwares, (el, k, idx) => {
             try{
@@ -40,8 +46,8 @@ function update_hexfiles() {
                         if (err) {console.log(err)}
                     })
                 }
-            } catch (err){
-                console.error(err)
+            } catch (error){
+                Logger.warn("Writing to file in /no_hex_file failed.");
             }
         })
 
@@ -49,14 +55,13 @@ function update_hexfiles() {
             update_hexfiles();
         } else {
             client.end();
+            Logger.info("Client closed successfully. Looks like update went OK.");
         }
 
     })
     
     return true;
 }
-
-
 
 function update_sensors(){
 
@@ -75,10 +80,14 @@ function update_sensors(){
             .value()
 
         let current_items = fs.readdirSync(path.join(dpath, device), err => { console.error(err)})
-        for (item of current_items) {
-            if (fs.existsSync(path.join(dpath, device, item))){//&&fs.statSync(path.join(dpath, device, item)).isDirectory())){
-                fs.rmdirSync(path.join(dpath, device, item), {recursive: true})
-            }
+        try {
+            for (item of current_items) {
+               if (fs.existsSync(path.join(dpath, device, item))){//&&fs.statSync(path.join(dpath, device, item)).isDirectory())){
+                   fs.rmdirSync(path.join(dpath, device, item), {recursive: true})
+               }
+            }   
+        } catch (error) {
+            Logger.warn("Removing directory failed in update_sensors()");
         }
 
         //for (item of current_items) {
@@ -98,7 +107,7 @@ function update_sensors(){
                     }
                 }
             } catch (err) {
-                console.error(err)
+                Logger.warn("Writing to file or creating a directory failed in update_sensors()");
             }
         })
         
@@ -116,8 +125,16 @@ function update_sensors(){
 }
 
 function update_devices(new_devices){
-    console.log("Updating devices")
-    let current_devices = fs.readdirSync(dpath)
+
+    Logger.info("The devices update procedure has started.");
+    let current_devices = undefined;
+    
+    try {
+        current_devices = fs.readdirSync(dpath)
+    } catch (error) {
+        Logger.error("Couldn't find /devices directory.");
+    }
+
     _.each(new_devices, (el, k, idx) => {
         if (!current_devices.includes(el)){
             try {
@@ -125,7 +142,8 @@ function update_devices(new_devices){
                     fs.mkdirSync(path.join(dpath, el))
                 }
             } catch (err) {
-                console.log(err) // TODO: Change to logging to file
+                //console.log(err) // TODO: Change to logging to file
+                Logger.warn("Error during creating a directory for some device.");
             }
         }
     })
@@ -133,7 +151,8 @@ function update_devices(new_devices){
         if (!new_devices.includes(el)){
             fs.rmdir(path.join(dpath, el), {recursive: true }, (err) => {
                 if (err){
-                    console.log("Directory remove error: ", err) // TODO: Change to logging to file
+                    //console.log("Directory remove error: ", err) // TODO: Change to logging to file
+                    Logger.warn("Directory remove error.");
                 }
             })
         }
@@ -150,8 +169,11 @@ function update_devices(new_devices){
 
 function update_faq(){
      client.get('/faq/faq.json', (err, stream) => {
-        if(err)
-            throw err;
+        if(err) {
+            Logger.error("Error happend during retrieving the faq.json from the server.");
+            update_faq();
+            return;
+        }
         stream.once("close", () => {
             update_hex_file();
         })
@@ -162,8 +184,11 @@ function update_faq(){
 
 var update_hex_file = function(){
      client.get('/hex_file/printers.json', (err, stream) => {
-        if(err)
-            throw err;
+        if(err){
+            Logger.error("Error happend during retrieving the /hex_file/printers.json from the server.");
+            update_hex_file();
+            return;
+        }
         stream.once("close", () => {
             update_hallon_faq();
         })
@@ -173,8 +198,12 @@ var update_hex_file = function(){
 
 var update_hallon_faq = function(){
      client.get('/faq_configurator/faq.json', (err, stream) => {
-         if(err)
-             console.log(err);
+         if (err) {
+            Logger.error("Error happend during retrieving the /faq_configurator/faq.json from the server.");
+            update_hallon_faq();
+            return;
+         }
+
          stream.pipe(fs.createWriteStream('hallon_faq.json'))
      });
 }
@@ -183,6 +212,10 @@ var update_hallon_faq = function(){
 client.on('ready', () => {
 
     client.listSafe('/no_hex_file', false, (err, listing) => {
+        if (err) {
+            Logger.error("Error happend during retrieving the /no_hex_file from the server.");
+        }
+
         devices = _.filter(listing, (element) => {
             return element.type == 'd' && !excluded_dirs.includes(element.name); // d because type d means it's a directory. And we don't want parent and current directory symlinks
         })
@@ -197,7 +230,8 @@ client.on('ready', () => {
 })
 
 client.on('error', (error) => {
-    console.error(error); // TODO: change console logging to logging to file
+    //console.error(error); // TODO: change console logging to logging to file
+    Logger.error("Error during connecting to the FTP server.");
 })
 
 router.get('/', async (req, res) => {
@@ -225,7 +259,7 @@ router.get('/', async (req, res) => {
     } catch(err) {
         // Should terminate window and return to welcome window
         // with appropriate error message
-        console.log("FTP ERROR: ", err)
+        Logger.error("Error with connecting to the FTP server at early stage. Place: ftp_updater.js, router.get('/', ...) function.");
         res.sendStatus(500)
     }
 })

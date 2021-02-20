@@ -1,12 +1,17 @@
 {
     "printers": [
         {
-            "name": "Anet A8/A6",
+            "name": "Anet 1.0-1.5",
             "baudrate": "57600",
             "processor": "atmega1284p"
         },
         {
-            "name": "Ender 3/3 Pro/5",
+            "name": "Anet 1.7",
+            "baudrate": "115200",
+            "processor": "atmega1284p"
+        },
+        {
+            "name": "Creality 1.1.X",
             "baudrate": "115200",
             "processor": "atmega1284p"
         },
@@ -21,7 +26,7 @@
             "processor": "atmega328p"
         },
         {
-            "name": "RAMPS-based",
+            "name": "RAMPS",
             "baudrate": "115200",
             "processor": "atmega2560"
         },
@@ -33,11 +38,6 @@
         {
             "name": "MKS 1.4",
             "baudrate": "115200",
-            "processor": "atmega2560"
-        },
-        {
-            "name": "Other",
-            "baudrate": "57600",
             "processor": "atmega2560"
         }
     ]

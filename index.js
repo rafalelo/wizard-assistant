@@ -11,6 +11,8 @@ const faqpath = path.join(__dirname, "faq.json")
 const hex_file_path = path.join(__dirname, "hex_file.json")
 const hallonfaqpath = path.join(__dirname, "hallon_faq.json")
 
+const Logger = require('./logger');
+
 if (process.env.NODE_ENV) {
     require('dotenv').config({path: resolve('/home/admin/wizard-assistant/.env')})
     console.log('Production .env file loaded.')
@@ -30,6 +32,12 @@ app.get('/favicon.ico', (req, res) => {
 })
 
 app.get('/dev/:device/:sensor', (req, res)=>{
+
+    if (!req.params.device||!req.params.sensor){
+        Logger.warn("Requested /dev endpoint.");
+        res.sendStatus(501);
+        return;
+    }
     
     let device = req.params.device
     let sensor = req.params.sensor
@@ -89,8 +97,15 @@ app.get('/:device', (req, res)=>{
     let device = req.params.device
     let processor
     let baud
+    let listing
 
-    let listing = fs.readdirSync(path.join(dpath, device));
+    try {
+        listing = fs.readdirSync(path.join(dpath, device));
+    } catch (error) {
+        Logger.error({message: `Someone tried access non-existing endpoint: ${device}`});
+        res.sendStatus(501);
+        return;
+    }
 
     let procfile = _.find(listing, (el) => { return el.includes('.processor')})// Look for .processor file
     let baudfile = _.find(listing, (el) => { return el.includes('.baudrate')}) // Look for .baudrate file

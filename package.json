@@ -22,7 +22,8 @@
     "express": "^4.17.1",
     "ftp": "^0.3.10",
     "ftpdump": "0.0.1",
-    "underscore": "^1.10.2"
+    "underscore": "^1.10.2",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
