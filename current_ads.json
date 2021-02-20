@@ -1,0 +1,16 @@
+{
+    "base_url": "gmz.webd.pro/firmwares/advertisements/",
+    "timestamp": "20-02-2021",
+    "hallon": [
+        {
+            "filename": "hallon_reklama1_en.png",
+            "position": "big_horizontal"
+        }
+    ],
+    "wizard": [
+        {
+            "filename": "en_reklama1.png",
+            "position": "big_horizontal"
+        }
+    ]
+}

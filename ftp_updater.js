@@ -203,9 +203,24 @@ var update_hallon_faq = function(){
             update_hallon_faq();
             return;
          }
+         stream.once('close', () => {
+             update_ads();
+         })
 
          stream.pipe(fs.createWriteStream('hallon_faq.json'))
      });
+}
+
+const update_ads = () => {
+    client.get('/advertisements/current_ads.json', (err, stream) => {
+        if (err) {
+            Logger.error("Error happened during retrieving the /advertisements/current_ads.json from the server.");
+            update_ads();
+            return;
+        }
+        
+        stream.pipe(fs.createWriteStream('current_ads.json'));
+    })
 }
 
 

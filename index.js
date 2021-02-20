@@ -10,6 +10,7 @@ const dpath = path.join(__dirname, "devices")
 const faqpath = path.join(__dirname, "faq.json")
 const hex_file_path = path.join(__dirname, "hex_file.json")
 const hallonfaqpath = path.join(__dirname, "hallon_faq.json")
+const adspath = path.join(__dirname, "current_ads.json");
 
 const Logger = require('./logger');
 
@@ -20,7 +21,6 @@ if (process.env.NODE_ENV) {
     require('dotenv').config()
     console.log('Development .env file loaded.')
 }
-
 
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
@@ -48,20 +48,8 @@ app.get('/dev/:device/:sensor', (req, res)=>{
 
     res.send({"devices": firmwares})
 
-    //client.listSafe(`/${device}/${sensor}`, false, (err, listing) => {
-    //    console.log(listing)
-    //    listing = _.filter(listing, (element)=>{
-    //        return element.type == '-'; // 2 because type 2 means it's a directory
-    //    })
-    //    listing = _.map(listing, (element) => {
-    //        return element.name;
-    //    })
-    //    console.log(listing)
-    //    res.send({"devices": listing})
-    //})
-    
-    
 })
+
 app.get('/devices', (req, res) => {
     
     let devices = fs.readdirSync(dpath); // TODO: Ensure all returned items are directories
@@ -89,6 +77,11 @@ app.get('/hallon/faq', (req, res) => {
     let faq = fs.readFileSync(hallonfaqpath);
     res.send(JSON.parse(faq));
 
+})
+
+app.get('/ads', (req, res) => {
+    const ads = fs.readFileSync(adspath);
+    res.send(JSON.parse(ads));
 })
 
 app.get('/:device', (req, res)=>{
