@@ -5,7 +5,7 @@
             "content": "It may be caused by difference between selected baudrate and actual baudrate with which your printer communicates. If it's not the thing, then you should check if you have selected correct COM port. On Linux, it is /dev/tty... port."
         },
         {
-            "title": "Why some buttons are disabled?",
+            "title": "Why are some buttons disabled?",
             "content": "In order to move Z axis, you have to unlock Z axis first. If you want to set the offset, it has to be read first."
         }
     ]

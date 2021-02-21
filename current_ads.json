@@ -1,10 +1,18 @@
 {
-    "base_url": "gmz.webd.pro/firmwares/advertisements/",
-    "timestamp": "20-02-2021",
+    "base_url": "http://gmz.webd.pro/firmwares/advertisements/",
+    "timestamp": "21022002",
     "hallon": [
         {
-            "filename": "hallon_reklama1_en.png",
-            "position": "big_horizontal"
+            "filename": "hallon_reklama_pl.png",
+            "position": "big_horizontal",
+            "langs": ["pl"],
+            "target": "https://shop.garage-makezone.eu/"
+        },
+        {
+            "filename": "hallon_reklama_en.png",
+            "position": "big_horizontal",
+            "langs": ["en", "de", "pt", "es", "fr", "ru", "it", "cz"],
+            "target": "https://shop.garage-makezone.eu/en_US/index"
         }
     ],
     "wizard": [

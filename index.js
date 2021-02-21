@@ -27,6 +27,8 @@ app.use(express.json())
 
 app.use('/update', require('./ftp_updater'))
 
+app.use('/v2', require('./api_v2'));
+
 app.get('/favicon.ico', (req, res) => {
     res.sendStatus(200)
 })

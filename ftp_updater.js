@@ -204,10 +204,25 @@ var update_hallon_faq = function(){
             return;
          }
          stream.once('close', () => {
-             update_ads();
+             update_hallon_faq_v2();
          })
 
          stream.pipe(fs.createWriteStream('hallon_faq.json'))
+     });
+}
+
+const update_hallon_faq_v2 = () => {
+    client.get('/v2/hallon/faq.json', (err, stream) => {
+         if (err) {
+            Logger.error("Error happend during retrieving the /v2/hallon/faq.json from the server.");
+            update_hallon_faq_v2();
+            return;
+         }
+         stream.once('close', () => {
+             update_ads();
+         })
+
+         stream.pipe(fs.createWriteStream(path.join(__dirname,'v2/hallon/faq.json')))
      });
 }
 
