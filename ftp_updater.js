@@ -8,7 +8,7 @@ const _ = require('underscore')
 const client = new FTPClient();
 const excluded_dirs = ['.', '..', '.ftpquota']
 const dpath = path.join(__dirname, "devices")
-const faq = path.join(__dirname, "faq.json")
+const faq = path.join(__dirname, "wizard/faq.json")
 
 const Logger = require('./logger');
 
@@ -16,51 +16,48 @@ let devices = []
 
 let device_sensor = [] 
 
-function update_hexfiles() {
+//first
+function update_devices(new_devices){
 
-    let conf = device_sensor.pop()
-
-    client.listSafe(`/no_hex_file/${conf.device}/${conf.sensor}`, false, (err, listing) => {
-        let firmwares = _.chain(listing)
-                        .filter( (el) => { return el.type == '-'})
-                        .map((el) => { return el.name })
-                        .value()
-
-        //console.log(`Firmwares for ${conf.device}/${conf.sensor}: ${firmwares}`)
-        
-        let current_items = fs.readdirSync(path.join(dpath, conf.device, conf.sensor), err => { console.error(err)})
-        try {
-            for (item of current_items) {
-                if (fs.existsSync(path.join(dpath, conf.device, conf.sensor, item))){//&&fs.statSync(path.join(dpath, device, item)).isDirectory())){
-                    fs.rmdirSync(path.join(dpath, conf.device, conf.sensor, item), {recursive: true})
-                }
-            }   
-        } catch (error) {
-            Logger.warn("Removing directory in /no_hex_file failed.");
-        }
-
-        _.each(firmwares, (el, k, idx) => {
-            try{
-                if (!fs.existsSync(path.join(dpath, conf.device, conf.sensor, el))){
-                    fs.writeFile(path.join(dpath, conf.device, conf.sensor, el),'', (err)=>{
-                        if (err) {console.log(err)}
-                    })
-                }
-            } catch (error){
-                Logger.warn("Writing to file in /no_hex_file failed.");
-            }
-        })
-
-        if (device_sensor.length >0 ) {
-            update_hexfiles();
-        } else {
-            client.end();
-            Logger.info("Client closed successfully. Looks like update went OK.");
-        }
-
-    })
+    Logger.info("The devices update procedure has started.");
+    let current_devices = undefined;
     
-    return true;
+    try {
+        current_devices = fs.readdirSync(dpath)
+    } catch (error) {
+        Logger.error("Couldn't find /devices directory.");
+    }
+
+    _.each(new_devices, (el, k, idx) => {
+        if (!current_devices.includes(el)){
+            try {
+                if (!fs.existsSync(path.join(dpath, el))) {
+                    fs.mkdirSync(path.join(dpath, el))
+                }
+            } catch (err) {
+                //console.log(err) // TODO: Change to logging to file
+                Logger.warn("Error during creating a directory for some device.");
+            }
+        }
+    })
+    _.each(current_devices, (el, k, idx) => {
+        if (!new_devices.includes(el)){
+            fs.rmdir(path.join(dpath, el), {recursive: true }, (err) => {
+                if (err){
+                    //console.log("Directory remove error: ", err) // TODO: Change to logging to file
+                    Logger.warn("Directory remove error.");
+                }
+            })
+        }
+    })
+
+    // So far we have to be sure that folders in device/ are up to date
+
+    devices = new_devices;
+    //new_devices.forEach( (device) => {
+    //    update_sensors(device)
+    //})
+    update_sensors();
 }
 
 function update_sensors(){
@@ -124,51 +121,56 @@ function update_sensors(){
 
 }
 
-function update_devices(new_devices){
+function update_hexfiles() {
 
-    Logger.info("The devices update procedure has started.");
-    let current_devices = undefined;
-    
-    try {
-        current_devices = fs.readdirSync(dpath)
-    } catch (error) {
-        Logger.error("Couldn't find /devices directory.");
-    }
+    let conf = device_sensor.pop()
 
-    _.each(new_devices, (el, k, idx) => {
-        if (!current_devices.includes(el)){
-            try {
-                if (!fs.existsSync(path.join(dpath, el))) {
-                    fs.mkdirSync(path.join(dpath, el))
+    client.listSafe(`/no_hex_file/${conf.device}/${conf.sensor}`, false, (err, listing) => {
+        let firmwares = _.chain(listing)
+                        .filter( (el) => { return el.type == '-'})
+                        .map((el) => { return el.name })
+                        .value()
+
+        //console.log(`Firmwares for ${conf.device}/${conf.sensor}: ${firmwares}`)
+        
+        let current_items = fs.readdirSync(path.join(dpath, conf.device, conf.sensor), err => { console.error(err)})
+        try {
+            for (item of current_items) {
+                if (fs.existsSync(path.join(dpath, conf.device, conf.sensor, item))){//&&fs.statSync(path.join(dpath, device, item)).isDirectory())){
+                    fs.rmdirSync(path.join(dpath, conf.device, conf.sensor, item), {recursive: true})
                 }
-            } catch (err) {
-                //console.log(err) // TODO: Change to logging to file
-                Logger.warn("Error during creating a directory for some device.");
+            }   
+        } catch (error) {
+            Logger.warn("Removing directory in /no_hex_file failed.");
+        }
+
+        _.each(firmwares, (el, k, idx) => {
+            try{
+                if (!fs.existsSync(path.join(dpath, conf.device, conf.sensor, el))){
+                    fs.writeFile(path.join(dpath, conf.device, conf.sensor, el),'', (err)=>{
+                        if (err) {console.log(err)}
+                    })
+                }
+            } catch (error){
+                Logger.warn("Writing to file in /no_hex_file failed.");
             }
-        }
-    })
-    _.each(current_devices, (el, k, idx) => {
-        if (!new_devices.includes(el)){
-            fs.rmdir(path.join(dpath, el), {recursive: true }, (err) => {
-                if (err){
-                    //console.log("Directory remove error: ", err) // TODO: Change to logging to file
-                    Logger.warn("Directory remove error.");
-                }
-            })
-        }
-    })
+        })
 
-    // So far we have to be sure that folders in device/ are up to date
+        if (device_sensor.length >0 ) {
+            update_hexfiles();
+        } else {
+            client.end();
+            Logger.info("Client closed successfully. Looks like update went OK.");
+        }
 
-    devices = new_devices;
-    //new_devices.forEach( (device) => {
-    //    update_sensors(device)
-    //})
-    update_sensors();
+    })
+    
+    return true;
 }
 
+//second
 function update_faq(){
-     client.get('/faq/faq.json', (err, stream) => {
+     client.get('/wizard/faq/faq.json', (err, stream) => {
         if(err) {
             Logger.error("Error happend during retrieving the faq.json from the server.");
             update_faq();
@@ -177,13 +179,13 @@ function update_faq(){
         stream.once("close", () => {
             update_hex_file();
         })
-        stream.pipe(fs.createWriteStream('faq.json'))
+        stream.pipe(fs.createWriteStream('wizard/faq.json'))
      });
 
 }
 
 var update_hex_file = function(){
-     client.get('/hex_file/printers.json', (err, stream) => {
+     client.get('wizard/hex_file/printers.json', (err, stream) => {
         if(err){
             Logger.error("Error happend during retrieving the /hex_file/printers.json from the server.");
             update_hex_file();
@@ -192,7 +194,7 @@ var update_hex_file = function(){
         stream.once("close", () => {
             update_hallon_faq();
         })
-        stream.pipe(fs.createWriteStream('hex_file.json'))
+        stream.pipe(fs.createWriteStream('wizard/hex_file.json'))
      });
 }
 
@@ -207,7 +209,7 @@ var update_hallon_faq = function(){
              update_hallon_faq_v2();
          })
 
-         stream.pipe(fs.createWriteStream('hallon_faq.json'))
+         stream.pipe(fs.createWriteStream('hallon/hallon_faq.json'))
      });
 }
 
@@ -238,7 +240,7 @@ const update_ads = () => {
     })
 }
 
-
+//wizard
 client.on('ready', () => {
 
     client.listSafe('/no_hex_file', false, (err, listing) => {

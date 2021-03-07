@@ -6,11 +6,11 @@ const path = require('path')
 const fs = require('fs')
 const _ = require('underscore');
 
-const dpath = path.join(__dirname, "devices")
-const faqpath = path.join(__dirname, "faq.json")
-const hex_file_path = path.join(__dirname, "hex_file.json")
-const hallonfaqpath = path.join(__dirname, "hallon_faq.json")
 const adspath = path.join(__dirname, "current_ads.json");
+const dpath = path.join(__dirname, "devices")
+const hallonfaqpath = path.join(__dirname, "hallon/hallon_faq.json")
+const faqpath = path.join(__dirname, "wizard/faq.json")
+const hex_file_path = path.join(__dirname, "wizard/hex_file.json")
 
 const Logger = require('./logger');
 
@@ -27,12 +27,26 @@ app.use(express.json())
 
 app.use('/update', require('./ftp_updater'))
 
-app.use('/v2', require('./api_v2'));
-
 app.get('/favicon.ico', (req, res) => {
     res.sendStatus(200)
 })
 
+//hallon
+app.get('/ads', (req, res) => {
+    const ads = fs.readFileSync(adspath);
+    res.send(JSON.parse(ads));
+})
+
+app.use('/v2', require('./hallon/api_v2'));
+
+app.get('/hallon/faq', (req, res) => {
+
+    let faq = fs.readFileSync(hallonfaqpath);
+    res.send(JSON.parse(faq));
+
+})
+
+//wizard
 app.get('/dev/:device/:sensor', (req, res)=>{
 
     if (!req.params.device||!req.params.sensor){
@@ -43,8 +57,6 @@ app.get('/dev/:device/:sensor', (req, res)=>{
     
     let device = req.params.device
     let sensor = req.params.sensor
-    let processor
-    let baud
 
     let firmwares = fs.readdirSync(path.join(dpath, device, sensor), err => {console.error(err)})
 
@@ -74,20 +86,7 @@ app.get('/hex_file', (req, res) => {
 
 })
 
-app.get('/hallon/faq', (req, res) => {
-
-    let faq = fs.readFileSync(hallonfaqpath);
-    res.send(JSON.parse(faq));
-
-})
-
-app.get('/ads', (req, res) => {
-    const ads = fs.readFileSync(adspath);
-    res.send(JSON.parse(ads));
-})
-
 app.get('/:device', (req, res)=>{
-    let count = 0
     
     let device = req.params.device
     let processor
@@ -118,6 +117,7 @@ app.get('/:device', (req, res)=>{
         
 })
 
+//
 app.get('/*', function(req, res) {
      
     res.status(404).send("Not found")
